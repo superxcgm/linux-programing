@@ -1,0 +1,5 @@
+*.o
+build
+*.iml
+.idea
+a.out
