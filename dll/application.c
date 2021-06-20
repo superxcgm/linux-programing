@@ -55,5 +55,23 @@ main(int argc, char **argv) {
   add_data_to_dll(person_db, person3);
 
   print_person_db(person_db);
+
+  if (is_dll_empty(person_db) == 0) {
+    printf("db empty.\n");
+  } else {
+    printf("db not empty.\n");
+  }
+
+  printf("remove person1\n");
+  remove_data_from_dll_by_data_ptr(person_db, person1);
+  printf("drain dll\n");
+  drain_dll(person_db);
+
+  if (is_dll_empty(person_db) == 0) {
+    printf("db empty.\n");
+  } else {
+    printf("db not empty.\n");
+  }
+
   return 0;
 }
