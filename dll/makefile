@@ -2,13 +2,16 @@ all: exe
 
 CC ?= gcc
 
-exe: dll.o application.o dll_utls.o
-	gcc -g -o exe dll.o application.o dll_utls.o
+exe: application.o libdll.a
+	gcc -g -o exe application.o -L . -ldll
+
+libdll.a: dll.o dll_utils.o
+	ar rs libdll.a dll.o dll_utils.o
 
 dll.o: dll.c dll.h
 	$(CC) -g -c -o $@ $<
 
-dll_utls.o: dll_utils.c dll.h
+dll_utils.o: dll_utils.c dll.h
 	$(CC) -g -c -o $@ $<
 
 application.o: application.c
@@ -17,4 +20,4 @@ application.o: application.c
 .PHONY: clean
 
 clean:
-	-rm *.o
+	rm -f *.o *.so *.a exe exe_so

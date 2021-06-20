@@ -4,3 +4,5 @@ build
 .idea
 a.out
 exe
+*.a
+*.so
