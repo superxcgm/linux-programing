@@ -22,3 +22,13 @@ is_dll_empty(dll_t *dll);
 
 void
 drain_dll(dll_t *dll);
+
+#define ITERATE_LIST_BEGIN(list_ptr, node_ptr) \
+{                                              \
+  dll_node_t *_next = NULL;                    \
+  node_ptr = list_ptr->head;                   \
+  for (; node_ptr != NULL; node_ptr = _next) { \
+    if (!node_ptr) break;                      \
+      _next = node_ptr->next;
+
+#define ITERATE_LIST_END }}

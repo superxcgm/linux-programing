@@ -21,6 +21,7 @@ print_person_details(person_t *person) {
 
 static void
 print_person_db(dll_t *person_db) {
+#if 0
   if (!person_db || !person_db->head) return;
 
   dll_node_t *head = person_db->head;
@@ -31,6 +32,13 @@ print_person_db(dll_t *person_db) {
     print_person_details(data);
     head = head->next;
   }
+#endif
+  dll_node_t *node_ptr = NULL;
+  person_t *data = NULL;
+  ITERATE_LIST_BEGIN(person_db, node_ptr) {
+    data = node_ptr->data;
+    print_person_details(data);
+  } ITERATE_LIST_END
 }
 
 static person_t *new_person(const char *name, int age, int weight) {
