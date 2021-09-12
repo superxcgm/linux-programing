@@ -6,3 +6,4 @@ a.out
 exe
 *.a
 *.so
+cmake-build-debug
