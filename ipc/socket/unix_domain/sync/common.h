@@ -2,6 +2,9 @@
 #define SOCKET_MSG_H
 
 #include <stdbool.h>
+#include <sys/un.h>
+
+#define SOCKET_NAME "/tmp/rtm_sync"
 
 typedef enum {
     CREATE,
@@ -34,5 +37,7 @@ typedef struct routes {
 } Routes;
 
 bool routes_add(Routes *routes, char *destination, char mask, char *gateway_ip, char *oif);
-
+int system_call_exit_on_failed(int return_value);
+void socket_address_init(struct sockaddr_un *address);
+void print_routes(Routes *routes);
 #endif //SOCKET_MSG_H
