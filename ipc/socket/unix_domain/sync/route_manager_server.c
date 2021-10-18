@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <fcntl.h>
 #include "./common.h"
 
 #define SOCKET_NAME "/tmp/rtm_sync"
@@ -59,6 +60,8 @@ void server() {
 }
 
 int main() {
+    int fd = open("test.in", O_RDONLY);
+    dup2(fd, STDIN_FILENO);
     clients.len = 0;
     routes.len = 0;
 
@@ -70,31 +73,30 @@ int main() {
     }
 
 
-    char line_buf[BUFSIZ];
+    char *line_buf = malloc(BUFSIZ);
+    char *cmd = malloc(64);
+    char *destination_and_mask = malloc(64);
+    char *gateway = malloc(16);
+    char *oif = malloc(32);
+
     while (fgets(line_buf, BUFSIZ, stdin)) {
-        char cmd[128];
-        char destination_and_mask[64];
-        char gateway[16];
-        char oif[32];
         sscanf(line_buf, "%s", cmd);
         if (string_equal_ignore_case(cmd, "CREATE")) {
-            scanf(line_buf, "%s", destination_and_mask); // todo: 不知道为啥，到这里就跑飞了
+            sscanf(line_buf + strlen("CREATE"), "%s %s %s", destination_and_mask, gateway, oif);
             char *destination = destination_and_mask;
             char *delimiter = strchr(destination_and_mask, '/');
             *delimiter = '\0';
-            char mask = *(delimiter + 1);
-            scanf(line_buf, "%s", gateway);
-            scanf(line_buf, "%s", oif);
+            char mask = atoi(delimiter + 1);
             routes_add(&routes, destination, mask, gateway, oif);
-            printf("Route %s/%c %s %s created\n", destination, mask, gateway, oif);
+            printf("Route %s/%d %s %s created\n", destination, mask, gateway, oif);
         } else if (string_equal_ignore_case(cmd, "UPDATE")) {
             printf("Update...\n");
         } else if (string_equal_ignore_case(cmd, "DELETE")) {
             printf("Deleting...\n");
         } else if (string_equal_ignore_case(cmd, "LIST")) {
-            printf("Destination Subnet \t Gate IP \t OIF");
+            printf("%-20s    %-20s %-20s\n","Destination Subnet", "Gate IP", "OIF");
             for (int i = 0; i < routes.len; i++) {
-                printf("%s/%d %s %s\n",
+                printf("%s/%-13d %-20s %-20s\n",
                        routes.data[i].destination,
                        routes.data[i].mask,
                        routes.data[i].gateway_ip,
