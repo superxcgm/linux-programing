@@ -109,6 +109,12 @@ int main() {
     return EXIT_SUCCESS;
 }
 
+// Todo:
+//    1. Update
+//    2. Should update clients, when some client close connection
+//    3. Free memory
+//    4. Use some safe method
+
 void sync_create(int index) {
     sync_msg_t msg;
     msg.op_code = CREATE;
