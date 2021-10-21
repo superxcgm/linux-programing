@@ -4,11 +4,9 @@
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <sys/un.h>
-#include <sys/select.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <ctype.h>
-#include <fcntl.h>
 #include "./common.h"
 
 #define MAX_CLIENT_SUPPORTED 32
@@ -16,6 +14,10 @@
 bool string_equal_ignore_case(const char *s1, const char *s2);
 
 void sync_all_route_table(int socket);
+
+void sync_create(int index);
+
+void sync_delete(char *destination, char mask);
 
 bool is_exit = false;
 
@@ -83,13 +85,21 @@ int main() {
             *delimiter = '\0';
             char mask = atoi(delimiter + 1);
             routes_add(&routes, destination, mask, gateway, oif);
+            sync_create(routes.len - 1);
             printf("Route %s/%d %s %s created\n", destination, mask, gateway, oif);
         } else if (string_equal_ignore_case(cmd, "UPDATE")) {
             printf("Update...\n");
         } else if (string_equal_ignore_case(cmd, "DELETE")) {
-            printf("Deleting...\n");
+            sscanf(line_buf + strlen("DELETE"), "%s", destination_and_mask);
+            char *destination = destination_and_mask;
+            char *delimiter = strchr(destination_and_mask, '/');
+            *delimiter = '\0';
+            char mask = atoi(delimiter + 1);
+            routes_delete(&routes, destination, mask);
+            sync_delete(destination, mask);
+            printf("Route %s/%d deleted\n", destination, mask);
         } else if (string_equal_ignore_case(cmd, "LIST")) {
-
+            print_routes(&routes);
         } else {
             printf("I have no idea what you are talking about\n");
         }
@@ -97,6 +107,30 @@ int main() {
     is_exit = true;
     pthread_join(tid, NULL);
     return EXIT_SUCCESS;
+}
+
+void sync_create(int index) {
+    sync_msg_t msg;
+    msg.op_code = CREATE;
+
+    for (int i = 0; i < clients.len; ++i) {
+        strcpy(msg.msg_body.destination, routes.data[index].destination);
+        msg.msg_body.mask = routes.data[index].mask;
+        strcpy(msg.msg_body.gateway_ip, routes.data[index].gateway_ip);
+        strcpy(msg.msg_body.oif, routes.data[index].oif);
+        system_call_exit_on_failed(write(clients.data[i], &msg, sizeof(sync_msg_t)));
+    }
+}
+
+void sync_delete(char *destination, char mask) {
+    sync_msg_t msg;
+    msg.op_code = DELETE;
+
+    for (int i = 0; i < clients.len; ++i) {
+        strcpy(msg.msg_body.destination, destination);
+        msg.msg_body.mask = mask;
+        system_call_exit_on_failed(write(clients.data[i], &msg, sizeof(sync_msg_t)));
+    }
 }
 
 void sync_all_route_table(int data_socket) {

@@ -37,6 +37,8 @@ typedef struct routes {
 } Routes;
 
 bool routes_add(Routes *routes, char *destination, char mask, char *gateway_ip, char *oif);
+bool routes_delete(Routes *routes, char *destination, char mask);
+
 int system_call_exit_on_failed(int return_value);
 void socket_address_init(struct sockaddr_un *address);
 void print_routes(Routes *routes);

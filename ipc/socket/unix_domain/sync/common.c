@@ -29,6 +29,7 @@ void socket_address_init(struct sockaddr_un *address) {
 }
 
 void print_routes(Routes *routes) {
+    printf("--------------------------------------------------------------------\n");
     printf("%-20s    %-20s %-20s\n","Destination Subnet", "Gate IP", "OIF");
     for (int i = 0; i < routes->len; i++) {
         printf("%s/%-13d %-20s %-20s\n",
@@ -37,4 +38,15 @@ void print_routes(Routes *routes) {
                routes->data[i].gateway_ip,
                routes->data[i].oif);
     }
+    printf("--------------------------------------------------------------------\n");
+}
+
+bool routes_delete(Routes *routes, char *destination, char mask) {
+    for (int i = 0; i < routes->len; ++i) {
+        if (strcmp(routes->data[i].destination, destination) == 0 && routes->data[i].mask == mask) {
+            memcpy(&routes->data[i], &routes->data[routes->len - 1], sizeof(Route));
+            routes->len--;
+        }
+    }
+    return 0;
 }
